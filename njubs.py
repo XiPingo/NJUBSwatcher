@@ -20,11 +20,12 @@ from email.header import Header
 from typing import Dict, List, Tuple
 from requests.adapters import HTTPAdapter
 from urllib3.util.ssl_ import create_urllib3_context
+import ssl
 
 # --------------------------
 # 配置区
 # --------------------------
-URL = "http://nubs.nju.edu.cn/main.htm"
+URL = "https://nubs.nju.edu.cn/main.htm"
 MODULE_IDS = {
     "latest_updates": "wp_news_w46",   # 最新动态
     "notices": "wp_news_w47",          # 通知公告
@@ -33,7 +34,7 @@ MODULE_IDS = {
 }
 
 SNAPSHOT_FILE = "nubs_snapshot.json"
-USER_AGENT = "Mozilla/5.0 (compatible; nubs-watcher/1.0; +https://github.com/)"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
 
 # 读取 GitHub Secrets（在 workflow 中注入）
 SMTP_HOST = "smtp.qq.com"
@@ -49,42 +50,78 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")  # 自动 push 用
 # 请求和解析
 # --------------------------
 class TLSAdapter(HTTPAdapter):
+    """
+    自定义 TLSAdapter，兼容老服务器，降低 OpenSSL 安全等级。
+    适配 requests verify=False。
+    """
     def init_poolmanager(self, *args, **kwargs):
         ctx = create_urllib3_context()
         ctx.set_ciphers("DEFAULT@SECLEVEL=1")
+        ctx.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3
+        # verify=False 时需要关闭 hostname 检查
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
         kwargs["ssl_context"] = ctx
         return super().init_poolmanager(*args, **kwargs)
+
+    def proxy_manager_for(self, *args, **kwargs):
+        ctx = create_urllib3_context()
+        ctx.set_ciphers("DEFAULT@SECLEVEL=1")
+        ctx.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        kwargs["ssl_context"] = ctx
+        return super().proxy_manager_for(*args, **kwargs)
+
+
 
 def get_page(url: str, timeout: int = 15) -> str:
     headers = {"User-Agent": USER_AGENT}
     s = requests.Session()
     s.mount("http://", HTTPAdapter(max_retries=3))
-    r = s.get(url, headers=headers, timeout=timeout, verify=False, allow_redirects=False)
-    r.raise_for_status()
-    r.encoding = r.apparent_encoding
-    return r.text
+    s.mount("https://", TLSAdapter(max_retries=3))
+
+    try:
+        r = s.get(url, headers=headers, timeout=timeout, verify=False, allow_redirects=True)
+        r.raise_for_status()
+        r.encoding = r.apparent_encoding
+        return r.text
+    except requests.exceptions.RequestException as e:
+        print("抓取失败：", e)
+        return ""
 
 def parse_module(html: str, module_id: str) -> List[Dict]:
+    """
+    抽取模块内每条新闻条目：title, href (绝对), date, text_hash
+    """
     soup = BeautifulSoup(html, "html.parser")
     container = soup.find(id=module_id)
     items = []
     if not container:
         return items
-    lis = container.select("ul.news_list li.news") or container.select("li")
+    # 查找所有 li.news 下的 a/title 和 日期
+    lis = container.select("ul.news_list li.news")
+    if not lis:
+        # 有些页面结构可能只是直接 a 标签
+        lis = container.select("li")
     for li in lis:
         a = li.find("a")
         if not a:
             continue
         title = (a.get("title") or a.get_text() or "").strip()
         href = a.get("href", "").strip()
+        # 处理相对链接
         if href.startswith("/"):
             href = requests.compat.urljoin(URL, href)
+        # 日期：页面里可能在 sibling span.news-time2
         date_span = li.find(class_="news-time2")
         date = date_span.get_text().strip() if date_span else ""
+        # make a compact id/hash for item
         key_str = f"{title}||{href}||{date}"
         item_hash = hashlib.sha256(key_str.encode("utf-8")).hexdigest()
         items.append({"title": title, "href": href, "date": date, "hash": item_hash})
     return items
+
 
 def fetch_all_modules() -> Dict[str, List[Dict]]:
     html = get_page(URL)
@@ -127,26 +164,31 @@ def diff_snapshots(old: Dict, new: Dict) -> Dict[str, Dict]:
 # --------------------------
 # 通知：邮件
 # --------------------------
+
+
 def send_email(subject: str, body: str):
-    if not (SMTP_USER and SMTP_PASS and EMAIL_FROM and EMAIL_TO):
-        print("❌ 邮件配置缺失，无法发送")
+    if not ENABLE_EMAIL:
         return
     msg = MIMEText(body, "plain", "utf-8")
     msg["From"] = Header(EMAIL_FROM)
     msg["To"] = Header(", ".join(EMAIL_TO))
     msg["Subject"] = Header(subject, "utf-8")
+    s = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30)
+    if SMTP_USER:
+        s.login(SMTP_USER, SMTP_PASS)
+    s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+    s.quit()
 
-    try:
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30) as server:
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
-        print("✅ 邮件发送成功")
-    except Exception as e:
-        print("❌ 邮件发送失败:", e)
+    if SMTP_USER:
+        s.login(SMTP_USER, SMTP_PASS)
+    s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+    s.quit()
 
 # --------------------------
 # 自动 git commit + push
 # --------------------------
+
+
 def git_commit_and_push(file_path: str):
     ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     try:
@@ -167,6 +209,8 @@ def git_commit_and_push(file_path: str):
 # --------------------------
 # 辅助
 # --------------------------
+
+
 def summarize_diffs(diffs: Dict[str, Dict]) -> Tuple[bool, str]:
     lines = []
     has_change = False
