@@ -166,7 +166,7 @@ def send_email(subject: str, body: str):
     msg["From"] = Header(EMAIL_FROM)
     msg["To"] = Header(", ".join(EMAIL_TO))
     msg["Subject"] = Header(subject, "utf-8")
-    s = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30)
+    s = smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30)
     s.login(SMTP_USER, SMTP_PASS)
     s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
     s.quit()
