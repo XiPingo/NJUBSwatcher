@@ -173,8 +173,7 @@ def send_email(subject: str, body: str):
     msg["To"] = Header(", ".join(EMAIL_TO))
     msg["Subject"] = Header(subject, "utf-8")
     s = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30)
-    if SMTP_USER:
-        s.login(SMTP_USER, SMTP_PASS)
+    s.login(SMTP_USER, SMTP_PASS)
     s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
     s.quit()
 
@@ -242,7 +241,10 @@ def main():
         print(body)
         save_snapshot(SNAPSHOT_FILE, new_snapshot)
         git_commit_and_push(SNAPSHOT_FILE)
-        send_email(subject, body)
+        try:
+            send_email(subject, body)
+        except Exception as e:
+            print("邮件发送失败：", e)
     else:
         if not old_snapshot:
             save_snapshot(SNAPSHOT_FILE, new_snapshot)
