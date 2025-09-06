@@ -1,41 +1,48 @@
-name: Run Watchers
+name: Run NUBS Watcher
 
 on:
   schedule:
     - cron: "*/30 * * * *"   # 每30分钟运行一次
-  workflow_dispatch:
+  workflow_dispatch:           # 支持手动触发
 
 jobs:
-  run-scripts:
+  run-watcher:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. 拉取仓库
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        persist-credentials: false  # 关闭默认 token，手动用 GITHUB_TOKEN
+        persist-credentials: false  # 关闭默认 token，手动使用 GITHUB_TOKEN
 
+    # 2. 安装 Python
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.11"
 
+    # 3. 安装依赖
     - name: Install dependencies
       run: pip install -r requirements.txt
 
+    # 4. 配置 Git 身份
     - name: Configure git identity
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Set remote with GITHUB_TOKEN
+    # 5. 设置远程使用 GITHUB_TOKEN
+    - name: Set remote URL with token
       run: |
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Xipingo/NJUBSwatcher.git
 
+    # 6. 运行 njubs.py
     - name: Run njubs.py
       env:
         SMTP_USER: ${{ secrets.SMTP_USER }}
         SMTP_PASS: ${{ secrets.SMTP_PASS }}
         EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
         EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: python njubs.py

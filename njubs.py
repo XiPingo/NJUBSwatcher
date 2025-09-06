@@ -43,6 +43,8 @@ SMTP_PASS = os.environ.get("SMTP_PASS")
 EMAIL_FROM = os.environ.get("EMAIL_FROM")
 EMAIL_TO = os.environ.get("EMAIL_TO", "").split(",")
 
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")  # 自动 push 用
+
 # --------------------------
 # 请求和解析
 # --------------------------
@@ -140,17 +142,24 @@ def send_email(subject: str, body: str):
             server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
         print("✅ 邮件发送成功")
     except Exception as e:
-        print("❌ 邮件发送失败：", e)
+        print("❌ 邮件发送失败:", e)
 
 # --------------------------
 # 自动 git commit + push
 # --------------------------
 def git_commit_and_push(file_path: str):
+    ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     try:
-        ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         subprocess.run(["git", "add", file_path], check=True)
         subprocess.run(["git", "commit", "-m", f"update snapshot {ts}"], check=True)
-        subprocess.run(["git", "push"], check=True)
+        if GITHUB_TOKEN:
+            subprocess.run([
+                "git", "push",
+                f"https://x-access-token:{GITHUB_TOKEN}@github.com/Xipingo/NJUBSwatcher.git",
+                "main"
+            ], check=True)
+        else:
+            subprocess.run(["git", "push"], check=True)
         print("✅ 自动 git push 成功")
     except subprocess.CalledProcessError as e:
         print("❌ git 操作失败:", e)
@@ -198,7 +207,7 @@ def main():
         body = f"{subject}\n\n{summary}"
         print(body)
         save_snapshot(SNAPSHOT_FILE, new_snapshot)
-        git_commit_and_push(SNAPSHOT_FILE)   # 自动 commit + push
+        git_commit_and_push(SNAPSHOT_FILE)
         send_email(subject, body)
     else:
         if not old_snapshot:
