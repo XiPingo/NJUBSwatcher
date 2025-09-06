@@ -38,13 +38,14 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 # 邮件配置（从 GitHub Secrets 读取）
 SMTP_HOST = "smtp.qq.com"
+SMTP_PORT = 465
 SMTP_USER = os.environ.get("SMTP_USER")
 SMTP_PASS = os.environ.get("SMTP_PASS")
 EMAIL_FROM = os.environ.get("EMAIL_FROM")
 EMAIL_TO = os.environ.get("EMAIL_TO", "").split(",")
 
 # 邮件开关：有邮箱配置时才启用
-ENABLE_EMAIL = True if SMTP_USER and SMTP_PASS else False
+ENABLE_EMAIL = True
 
 # GitHub Token（用于自动 push）
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
@@ -53,7 +54,10 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 # 请求和解析
 # --------------------------
 class TLSAdapter(HTTPAdapter):
-    """兼容老 TLS 配置"""
+    """
+    自定义 TLSAdapter，兼容老服务器，降低 OpenSSL 安全等级。
+    适配 requests verify=False。
+    """
     def init_poolmanager(self, *args, **kwargs):
         ctx = create_urllib3_context()
         ctx.set_ciphers("DEFAULT@SECLEVEL=1")
@@ -90,6 +94,9 @@ def get_page(url: str, timeout: int = 15) -> str:
 
 
 def parse_module(html: str, module_id: str) -> List[Dict]:
+    """
+    抽取模块内每条新闻条目：title, href (绝对), date, text_hash
+    """
     soup = BeautifulSoup(html, "html.parser")
     container = soup.find(id=module_id)
     items = []
@@ -160,34 +167,15 @@ def diff_snapshots(old: Dict, new: Dict) -> Dict[str, Dict]:
 # --------------------------
 def send_email(subject: str, body: str):
     if not ENABLE_EMAIL:
-        print("⚠️ 邮件未启用（缺少 SMTP 配置）")
         return
-
     msg = MIMEText(body, "plain", "utf-8")
     msg["From"] = Header(EMAIL_FROM)
     msg["To"] = Header(", ".join(EMAIL_TO))
     msg["Subject"] = Header(subject, "utf-8")
-
-    # 尝试 SSL 465
-    try:
-        with smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30) as server:
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
-        print("✅ 邮件发送成功 (465 SSL)")
-        return
-    except Exception as e1:
-        print("⚠️ 465 SSL 失败:", e1)
-
-    # 尝试 TLS 587
-    try:
-        with smtplib.SMTP(SMTP_HOST, 587, timeout=30) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
-        print("✅ 邮件发送成功 (587 TLS)")
-    except Exception as e2:
-        print("❌ 邮件发送失败 (587 也失败):", e2)
+    s = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30)
+    s.login(SMTP_USER, SMTP_PASS)
+    s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+    s.quit()
 
 # --------------------------
 # 自动 git commit + push
