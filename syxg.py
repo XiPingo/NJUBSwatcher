@@ -6,6 +6,7 @@ syxg.py
 监控 http://syxg.nju.edu.cn/ 四个模块（通知公告、就业招聘、规则流程、风采展示）
 当模块内容发生变化时输出变化摘要并发送通知。
 保存上次快照到 snapshot.json。
+（坏消息，这个网站只能校内ip访问，因此无法抓取）
 """
 
 import requests
