@@ -38,7 +38,7 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 # 邮件配置（从 GitHub Secrets 读取）
 SMTP_HOST = "smtp.qq.com"
-SMTP_PORT = 465
+SMTP_PORT = 587
 SMTP_USER = os.environ.get("SMTP_USER")
 SMTP_PASS = os.environ.get("SMTP_PASS")
 EMAIL_FROM = os.environ.get("EMAIL_FROM")
