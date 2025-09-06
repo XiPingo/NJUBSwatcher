@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-nubs_watcher.py
+njubs.py
 监控 https://nubs.nju.edu.cn/main.htm 的四个模块。
-当模块内容发生变化时输出变化摘要并发送邮件通知。
-快照保存到 snapshot.json。
+当模块内容发生变化时输出变化摘要、发送邮件通知，并自动 commit + push 快照到 GitHub。
 """
 
 import requests
@@ -15,6 +14,7 @@ import time
 import hashlib
 import os
 import smtplib
+import subprocess
 from email.mime.text import MIMEText
 from email.header import Header
 from typing import Dict, List, Tuple
@@ -38,10 +38,10 @@ USER_AGENT = "Mozilla/5.0 (compatible; nubs-watcher/1.0; +https://github.com/)"
 # 读取 GitHub Secrets（在 workflow 中注入）
 SMTP_HOST = "smtp.qq.com"
 SMTP_PORT = 465
-SMTP_USER = os.environ.get("SMTP_USER")      # 你的发件邮箱
-SMTP_PASS = os.environ.get("SMTP_PASS")      # 邮箱授权码
-EMAIL_FROM = os.environ.get("EMAIL_FROM")    # 发件人
-EMAIL_TO = os.environ.get("EMAIL_TO", "").split(",")  # 收件人（逗号分隔）
+SMTP_USER = os.environ.get("SMTP_USER")
+SMTP_PASS = os.environ.get("SMTP_PASS")
+EMAIL_FROM = os.environ.get("EMAIL_FROM")
+EMAIL_TO = os.environ.get("EMAIL_TO", "").split(",")
 
 # --------------------------
 # 请求和解析
@@ -49,7 +49,7 @@ EMAIL_TO = os.environ.get("EMAIL_TO", "").split(",")  # 收件人（逗号分隔
 class TLSAdapter(HTTPAdapter):
     def init_poolmanager(self, *args, **kwargs):
         ctx = create_urllib3_context()
-        ctx.set_ciphers("DEFAULT@SECLEVEL=1")  # 降低 OpenSSL 安全等级
+        ctx.set_ciphers("DEFAULT@SECLEVEL=1")
         kwargs["ssl_context"] = ctx
         return super().init_poolmanager(*args, **kwargs)
 
@@ -68,9 +68,7 @@ def parse_module(html: str, module_id: str) -> List[Dict]:
     items = []
     if not container:
         return items
-    lis = container.select("ul.news_list li.news")
-    if not lis:
-        lis = container.select("li")
+    lis = container.select("ul.news_list li.news") or container.select("li")
     for li in lis:
         a = li.find("a")
         if not a:
@@ -145,6 +143,19 @@ def send_email(subject: str, body: str):
         print("❌ 邮件发送失败：", e)
 
 # --------------------------
+# 自动 git commit + push
+# --------------------------
+def git_commit_and_push(file_path: str):
+    try:
+        ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        subprocess.run(["git", "add", file_path], check=True)
+        subprocess.run(["git", "commit", "-m", f"update snapshot {ts}"], check=True)
+        subprocess.run(["git", "push"], check=True)
+        print("✅ 自动 git push 成功")
+    except subprocess.CalledProcessError as e:
+        print("❌ git 操作失败:", e)
+
+# --------------------------
 # 辅助
 # --------------------------
 def summarize_diffs(diffs: Dict[str, Dict]) -> Tuple[bool, str]:
@@ -187,10 +198,12 @@ def main():
         body = f"{subject}\n\n{summary}"
         print(body)
         save_snapshot(SNAPSHOT_FILE, new_snapshot)
+        git_commit_and_push(SNAPSHOT_FILE)   # 自动 commit + push
         send_email(subject, body)
     else:
         if not old_snapshot:
             save_snapshot(SNAPSHOT_FILE, new_snapshot)
+            git_commit_and_push(SNAPSHOT_FILE)
             print("首次抓取并保存快照。")
         else:
             print("未检测到变化。")
