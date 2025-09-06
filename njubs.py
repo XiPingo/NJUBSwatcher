@@ -38,10 +38,15 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 # 邮件配置（从 GitHub Secrets 读取）
 SMTP_HOST = "smtp.qq.com"
-SMTP_USER = os.environ.get("SMTP_USER")
-SMTP_PASS = os.environ.get("SMTP_PASS")
-EMAIL_FROM = os.environ.get("EMAIL_FROM")
-EMAIL_TO = os.environ.get("EMAIL_TO", "").split(",")
+SMTP_USER = os.getenv("SMTP_USER", "").strip()
+SMTP_PASS = os.getenv("SMTP_PASS", "").strip()
+EMAIL_FROM = os.getenv("EMAIL_FROM", "").strip()
+EMAIL_TO = [addr.strip() for addr in os.getenv("EMAIL_TO", "").split(",") if addr.strip()]
+
+if not (SMTP_USER and SMTP_PASS and EMAIL_FROM and EMAIL_TO):
+    print("⚠️ 邮件未启用0（缺少 SMTP 配置）")
+else:
+    print(f"✅ 已加载 SMTP 配置，发件人 {EMAIL_FROM}，收件人 {EMAIL_TO}")
 
 # 邮件开关：有邮箱配置时才启用
 ENABLE_EMAIL = True if SMTP_USER and SMTP_PASS else False
@@ -160,7 +165,7 @@ def diff_snapshots(old: Dict, new: Dict) -> Dict[str, Dict]:
 # --------------------------
 def send_email(subject: str, body: str):
     if not ENABLE_EMAIL:
-        print("⚠️ 邮件未启用（缺少 SMTP 配置）")
+        print("⚠️ 邮件未启用111（缺少 SMTP 配置）")
         return
 
     msg = MIMEText(body, "plain", "utf-8")
