@@ -42,22 +42,7 @@ SMTP_USER = os.getenv("SMTP_USER", "").strip()
 SMTP_PASS = os.getenv("SMTP_PASS", "").strip()
 EMAIL_FROM = os.getenv("EMAIL_FROM", "").strip()
 raw_email_to = os.getenv("EMAIL_TO", "").strip()
-
-print("[调试] SMTP_USER:", repr(SMTP_USER))
-print("[调试] SMTP_PASS:", "已加载" if SMTP_PASS else "为空")
-print("[调试] EMAIL_FROM:", repr(EMAIL_FROM))
-print("[调试] EMAIL_TO 原始值:", repr(raw_email_to))
-
 EMAIL_TO = [addr.strip() for addr in raw_email_to.split(",") if addr.strip()]
-print("[调试] EMAIL_TO 列表:", EMAIL_TO)
-
-ENABLE_EMAIL = all([SMTP_USER, SMTP_PASS, EMAIL_FROM, EMAIL_TO])
-print("[调试] ENABLE_EMAIL =", ENABLE_EMAIL)
-
-if not (SMTP_USER and SMTP_PASS and EMAIL_FROM and EMAIL_TO):
-    print("⚠️ 邮件未启用0（缺少 SMTP 配置）")
-else:
-    print(f"✅ 已加载 SMTP 配置，发件人 {EMAIL_FROM}，收件人 {EMAIL_TO}")
 
 # 邮件开关：有邮箱配置时才启用
 ENABLE_EMAIL = True if SMTP_USER and SMTP_PASS else False
@@ -176,34 +161,15 @@ def diff_snapshots(old: Dict, new: Dict) -> Dict[str, Dict]:
 # --------------------------
 def send_email(subject: str, body: str):
     if not ENABLE_EMAIL:
-        print("⚠️ 邮件未启用111（缺少 SMTP 配置）")
         return
-
     msg = MIMEText(body, "plain", "utf-8")
     msg["From"] = Header(EMAIL_FROM)
     msg["To"] = Header(", ".join(EMAIL_TO))
     msg["Subject"] = Header(subject, "utf-8")
-
-    # 尝试 SSL 465
-    try:
-        with smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30) as server:
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
-        print("✅ 邮件发送成功 (465 SSL)")
-        return
-    except Exception as e1:
-        print("⚠️ 465 SSL 失败:", e1)
-
-    # 尝试 TLS 587
-    try:
-        with smtplib.SMTP(SMTP_HOST, 587, timeout=30) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
-        print("✅ 邮件发送成功 (587 TLS)")
-    except Exception as e2:
-        print("❌ 邮件发送失败 (587 也失败):", e2)
+    s = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30)
+    s.login(SMTP_USER, SMTP_PASS)
+    s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+    s.quit()
 
 # --------------------------
 # 自动 git commit + push
