@@ -41,7 +41,18 @@ SMTP_HOST = "smtp.qq.com"
 SMTP_USER = os.getenv("SMTP_USER", "").strip()
 SMTP_PASS = os.getenv("SMTP_PASS", "").strip()
 EMAIL_FROM = os.getenv("EMAIL_FROM", "").strip()
-EMAIL_TO = [addr.strip() for addr in os.getenv("EMAIL_TO", "").split(",") if addr.strip()]
+raw_email_to = os.getenv("EMAIL_TO", "").strip()
+
+print("[调试] SMTP_USER:", repr(SMTP_USER))
+print("[调试] SMTP_PASS:", "已加载" if SMTP_PASS else "为空")
+print("[调试] EMAIL_FROM:", repr(EMAIL_FROM))
+print("[调试] EMAIL_TO 原始值:", repr(raw_email_to))
+
+EMAIL_TO = [addr.strip() for addr in raw_email_to.split(",") if addr.strip()]
+print("[调试] EMAIL_TO 列表:", EMAIL_TO)
+
+ENABLE_EMAIL = all([SMTP_USER, SMTP_PASS, EMAIL_FROM, EMAIL_TO])
+print("[调试] ENABLE_EMAIL =", ENABLE_EMAIL)
 
 if not (SMTP_USER and SMTP_PASS and EMAIL_FROM and EMAIL_TO):
     print("⚠️ 邮件未启用0（缺少 SMTP 配置）")
