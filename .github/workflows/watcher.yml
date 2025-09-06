@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub Token 进行认证
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -26,10 +28,16 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Run njubs.py
+    - name: Run njubs.py and push snapshot
       env:
         SMTP_USER: ${{ secrets.SMTP_USER }}
         SMTP_PASS: ${{ secrets.SMTP_PASS }}
         EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
         EMAIL_TO: ${{ secrets.EMAIL_TO }}
-      run: python njubs.py
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python njubs.py
+        # 自动 commit & push snapshot
+        git add nubs_snapshot.json
+        git diff --cached --quiet || git commit -m "update snapshot $(date '+%Y-%m-%d %H:%M:%S')"
+        git push origin HEAD:main
