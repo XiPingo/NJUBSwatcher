@@ -36,7 +36,7 @@ MODULE_IDS = {
 SNAPSHOT_FILE = "nubs_snapshot.json"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
 
-# 读取 GitHub Secrets（在 workflow 中注入）
+# 邮件配置（从 GitHub Secrets 读取）
 SMTP_HOST = "smtp.qq.com"
 SMTP_PORT = 465
 SMTP_USER = os.environ.get("SMTP_USER")
@@ -44,7 +44,11 @@ SMTP_PASS = os.environ.get("SMTP_PASS")
 EMAIL_FROM = os.environ.get("EMAIL_FROM")
 EMAIL_TO = os.environ.get("EMAIL_TO", "").split(",")
 
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")  # 自动 push 用
+# 邮件开关：有邮箱配置时才启用
+ENABLE_EMAIL = True
+
+# GitHub Token（用于自动 push）
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 # --------------------------
 # 请求和解析
@@ -58,7 +62,6 @@ class TLSAdapter(HTTPAdapter):
         ctx = create_urllib3_context()
         ctx.set_ciphers("DEFAULT@SECLEVEL=1")
         ctx.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3
-        # verify=False 时需要关闭 hostname 检查
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
         kwargs["ssl_context"] = ctx
@@ -72,7 +75,6 @@ class TLSAdapter(HTTPAdapter):
         ctx.verify_mode = ssl.CERT_NONE
         kwargs["ssl_context"] = ctx
         return super().proxy_manager_for(*args, **kwargs)
-
 
 
 def get_page(url: str, timeout: int = 15) -> str:
@@ -90,6 +92,7 @@ def get_page(url: str, timeout: int = 15) -> str:
         print("抓取失败：", e)
         return ""
 
+
 def parse_module(html: str, module_id: str) -> List[Dict]:
     """
     抽取模块内每条新闻条目：title, href (绝对), date, text_hash
@@ -99,10 +102,8 @@ def parse_module(html: str, module_id: str) -> List[Dict]:
     items = []
     if not container:
         return items
-    # 查找所有 li.news 下的 a/title 和 日期
     lis = container.select("ul.news_list li.news")
     if not lis:
-        # 有些页面结构可能只是直接 a 标签
         lis = container.select("li")
     for li in lis:
         a = li.find("a")
@@ -110,13 +111,10 @@ def parse_module(html: str, module_id: str) -> List[Dict]:
             continue
         title = (a.get("title") or a.get_text() or "").strip()
         href = a.get("href", "").strip()
-        # 处理相对链接
         if href.startswith("/"):
             href = requests.compat.urljoin(URL, href)
-        # 日期：页面里可能在 sibling span.news-time2
         date_span = li.find(class_="news-time2")
         date = date_span.get_text().strip() if date_span else ""
-        # make a compact id/hash for item
         key_str = f"{title}||{href}||{date}"
         item_hash = hashlib.sha256(key_str.encode("utf-8")).hexdigest()
         items.append({"title": title, "href": href, "date": date, "hash": item_hash})
@@ -130,6 +128,7 @@ def fetch_all_modules() -> Dict[str, List[Dict]]:
         results[name] = parse_module(html, mid)
     return results
 
+
 def load_snapshot(path: str) -> Dict:
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
@@ -137,9 +136,11 @@ def load_snapshot(path: str) -> Dict:
     else:
         return {}
 
+
 def save_snapshot(path: str, data: Dict):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
 
 def diff_snapshots(old: Dict, new: Dict) -> Dict[str, Dict]:
     diffs = {}
@@ -164,8 +165,6 @@ def diff_snapshots(old: Dict, new: Dict) -> Dict[str, Dict]:
 # --------------------------
 # 通知：邮件
 # --------------------------
-
-
 def send_email(subject: str, body: str):
     if not ENABLE_EMAIL:
         return
@@ -179,16 +178,9 @@ def send_email(subject: str, body: str):
     s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
     s.quit()
 
-    if SMTP_USER:
-        s.login(SMTP_USER, SMTP_PASS)
-    s.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
-    s.quit()
-
 # --------------------------
 # 自动 git commit + push
 # --------------------------
-
-
 def git_commit_and_push(file_path: str):
     ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     try:
@@ -209,8 +201,6 @@ def git_commit_and_push(file_path: str):
 # --------------------------
 # 辅助
 # --------------------------
-
-
 def summarize_diffs(diffs: Dict[str, Dict]) -> Tuple[bool, str]:
     lines = []
     has_change = False
