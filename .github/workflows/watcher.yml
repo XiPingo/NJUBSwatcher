@@ -23,6 +23,3 @@ jobs:
 
     - name: Run njubs.py
       run: python njubs.py
-
-    - name: Run syxg.py
-      run: python syxg.py
