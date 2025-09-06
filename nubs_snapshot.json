@@ -1,6 +1,172 @@
 {
-  "latest_updates": [],
-  "notices": [],
-  "events": [],
-  "procurement": []
+  "latest_updates": [
+    {
+      "title": "南京大学纪委书记刘淼赴商学院调研",
+      "href": "https://nubs.nju.edu.cn/85/97/c8895a755095/page.htm",
+      "date": "2025.04.17",
+      "hash": "3d0d84f8e03875a02dde46f1d37c6346072db747b1ef382406d59fb17d138352"
+    },
+    {
+      "title": "商学院党委举行深入贯彻中央八项规定精神学习教育专题报告会",
+      "href": "https://nubs.nju.edu.cn/85/9e/c8895a755102/page.htm",
+      "date": "2025.04.17",
+      "hash": "492c96393d0619605f95a13992efa6cde1eed04b26b5d22f8f18de2e0651c54e"
+    },
+    {
+      "title": "商学院党委举办深入贯彻中央八项规定精神学习教育读书班",
+      "href": "https://nubs.nju.edu.cn/85/cd/c8895a755149/page.htm",
+      "date": "2025.04.18",
+      "hash": "7728f1f112252e1890f423ce2693905d0dec04497cebaf8283f6224ff85a5d87"
+    },
+    {
+      "title": "商学院党委联合开展深入贯彻中央八项规定精神学习教育党建共建暨主题党日活动",
+      "href": "https://nubs.nju.edu.cn/ac/dd/c8895a765149/page.htm",
+      "date": "2025.06.13",
+      "hash": "0cdfa8435d194b65bbbcfa1eaa6fb130665978eb80ef4f563f480d85d4dd24e6"
+    },
+    {
+      "title": "商学院党委组织开展《习近平经济文选》第一卷联学培训",
+      "href": "https://nubs.nju.edu.cn/fb/e8/c8895a785384/page.htm",
+      "date": "2025.08.25",
+      "hash": "13a83b29c29576daacc7b9b58dd61055e4d4dedbc29aed670386f941030a0a6c"
+    },
+    {
+      "title": "《南大商学评论》入选为CSSCI （2025-2026）收录集刊",
+      "href": "https://nubs.nju.edu.cn/f9/9b/c8895a784795/page.htm",
+      "date": "2025.08.21",
+      "hash": "473710295eaf88e6fe50b950625799c28556dadf50f335f2e4011700a0b6a9f2"
+    },
+    {
+      "title": "一场跨越1500公里的教育对话——让爱在地域与代际间自由流动",
+      "href": "https://mp.weixin.qq.com/s/XutCrM0L5eyFh5smagpGFQ",
+      "date": "2025.07.17",
+      "hash": "44c73f0ac9e2ba1d49e67c7ba200683a47f16007a997c3392c1b0392d90639d2"
+    }
+  ],
+  "notices": [
+    {
+      "title": "关于公开招聘商学院研究系列人员的启事",
+      "href": "https://nubs.nju.edu.cn/c5/dd/c8896a640477/page.htm",
+      "date": "2023.10.20",
+      "hash": "9e1dd6ccbe88117318e7f83d0edac84a2a264458b437ee05b10148f2a6c72e55"
+    },
+    {
+      "title": "关于2025级研究生新生党员组织关系转接的说明",
+      "href": "https://nubs.nju.edu.cn/a5/98/c8896a763288/page.htm",
+      "date": "2025.06.03",
+      "hash": "8ca2a2dc52a3c9ab919e8296d5830abda0dade650617e365dc81ca926b440f7e"
+    },
+    {
+      "title": "南京大学商学院2025年度准聘长聘岗位招聘公告",
+      "href": "https://rczp.nju.edu.cn//zrjs/zrjsgwlb/20250103/i306518.html",
+      "date": "2025.01.06",
+      "hash": "dede05a9e1aa12d3976358a26cbde8088fa618eee7337075b7279be30ab35e2f"
+    },
+    {
+      "title": "关于2025年度南京大学商学院推免生特殊学术专长答辩结果的公示",
+      "href": "https://nubs.nju.edu.cn/03/c6/c8896a787398/page.htm",
+      "date": "2025.09.05",
+      "hash": "30fea8aa4649316157623d08660089db28691b9dfc081765b8c3ddd62a451cf9"
+    },
+    {
+      "title": "关于《2025年度南京大学商学院推免生遴选工作实施细则》补充的公示",
+      "href": "https://nubs.nju.edu.cn/02/54/c8896a787028/page.htm",
+      "date": "2025.09.03",
+      "hash": "06113a10a0b4b3ec3aab8ecd597bb10eca662e0f81b0297fbe6a704da2a23d83"
+    },
+    {
+      "title": "关于《2025年度南京大学商学院推免生遴选工作实施细则》的公示",
+      "href": "https://nubs.nju.edu.cn/ff/01/c8896a786177/page.htm",
+      "date": "2025.08.29",
+      "hash": "947f0e6082093e551ae52294d2bd62d8425033ebed984699f9815c339f9b67ff"
+    },
+    {
+      "title": "南京大学商学院2026年接收推荐免试研究生预报名通知",
+      "href": "https://nubs.nju.edu.cn/d9/7a/c8896a776570/page.htm",
+      "date": "2025.08.01",
+      "hash": "11350f6a09c3d6bcbf8d0a8f0d0c6c308809d442958463049954eef68f8b4816"
+    }
+  ],
+  "events": [
+    {
+      "title": "商学院学生活动日历【实时更新】",
+      "href": "https://table.nju.edu.cn/dtable/external-links/844c9752a51c4399b23a/",
+      "date": "2024.03.07",
+      "hash": "20fa58961a77cecc3021e88f2189c80ce5cacbb591ec78cb5fa01ba81f3d1462"
+    },
+    {
+      "title": "商学院学术活动日历【实时更新】",
+      "href": "https://table.nju.edu.cn/dtable/view-external-links/2ba4c4415f22482da477/",
+      "date": "2022.04.28",
+      "hash": "abdc7745abeb856c7f3c8c00ca2e5e3598228b89c7a7bdedf977d5d9f88ad294"
+    },
+    {
+      "title": "南京大学商学院MBA项目办学三十周年庆活动公告（第二号）丨 活动报名",
+      "href": "https://mp.weixin.qq.com/s/h6z5f1hXOCEZUbyU3u7pUQ",
+      "date": "2024.11.25",
+      "hash": "469f3a6c23533e7cfd053bfc2fe64ac6ad3e823feb69affe3dfb136b0735beeb"
+    },
+    {
+      "title": "南京大学商学院MBA项目办学三十周年庆活动公告（第一号）",
+      "href": "https://mp.weixin.qq.com/s?__biz=MzA3MTcyMTcyNg==&mid=2650106477&idx=1&sn=198fcdf995300a0dfac962b95b8fd586&chksm=8728fdfcb05f74ea37c06681adf6f4f09f05babdefbd4b8f2ecdc6316dccf17b69c5019e6632&token=792429883&lang=zh_CN#rd",
+      "date": "2024.11.25",
+      "hash": "5316e34397d15d3c7d7ffcb5e8c45e81e9d9ad01fa510fc3a0f802d9c0133c53"
+    },
+    {
+      "title": "2024年第八届中国会计学博士毕业生就业意向交流会报名通知",
+      "href": "https://mp.weixin.qq.com/s/YkzVxmPgcitvrZkymKs-Fg",
+      "date": "2024.10.24",
+      "hash": "f17d9d712922b234511f3b9b5d664d5e79aba7071430308c7394e1ffd2b70911"
+    },
+    {
+      "title": "2024年第五届亚太会计学科院长论坛邀请函",
+      "href": "https://mp.weixin.qq.com/s/KwlzdOF2Bdn8tBGDibnzxA",
+      "date": "2024.10.24",
+      "hash": "f33c21e7c5daa0c4d5aeeb85ece4928a7f034ca2454105f35c2b04550ce974f1"
+    }
+  ],
+  "procurement": [
+    {
+      "title": "南京大学商学院MBA 2025级新生拓展服、背包分散采购评审结果公告",
+      "href": "https://nubs.nju.edu.cn/aa/56/c56446a764502/page.htm",
+      "date": "2025.06.10",
+      "hash": "474730bc2ee8a93ad68d4e107eade0f8cd0cb748a5f4834c10a596cf21547400"
+    },
+    {
+      "title": "南京大学商学院EMBA、国际EMBA项目招生物料及印刷服务分散采购评审结果公告",
+      "href": "https://nubs.nju.edu.cn/a1/f9/c56446a762361/page.htm",
+      "date": "2025.05.29",
+      "hash": "a77b96d9b1770b93aafcc6eb220053a37d1cbfc410ab99c5a6403ba767d3ca96"
+    },
+    {
+      "title": "南京大学商学院MBA 2025级新生拓展服、背包分散采购公告",
+      "href": "https://nubs.nju.edu.cn/9d/93/c56446a761235/page.htm",
+      "date": "2025.05.23",
+      "hash": "d5593681066a369ae14534c14eeb81cd38733b229da5b89c8040773cd38f628b"
+    },
+    {
+      "title": "南京大学商学院MBA中心2025年招生印刷品分散采购评审结果公告",
+      "href": "https://nubs.nju.edu.cn/9d/57/c56446a761175/page.htm",
+      "date": "2025.05.23",
+      "hash": "c67bf7cb5cfbf4c9be0baa0837c151e8e5ea5a55b13a487df52b0a22d4dbbea9"
+    },
+    {
+      "title": "南京大学商学院MBA中心2025年招生物料分散采购评审结果公告",
+      "href": "https://nubs.nju.edu.cn/9d/56/c56446a761174/page.htm",
+      "date": "2025.05.23",
+      "hash": "1c29377a571ebe45159f08e1e4d9ba58fed4fcf89aaf9f754d2969984b0b39ce"
+    },
+    {
+      "title": "南京大学商学院EMBA、国际EMBA项目招生物料及印刷服务分散采购公告（二次）",
+      "href": "https://nubs.nju.edu.cn/95/e3/c56446a759267/page.htm",
+      "date": "2025.05.14",
+      "hash": "05164533f0fc401a2ddea5416218f713b08299abeff19cf449b566cf53bdc759"
+    },
+    {
+      "title": "南京大学商学院EMBA、国际EMBA项目招生媒体广告宣传服务分散采购评审结果公告",
+      "href": "https://nubs.nju.edu.cn/95/a5/c56446a759205/page.htm",
+      "date": "2025.05.13",
+      "hash": "bff7cf390c04ee2f3d44e7077c5667bfbfba049f65b2b33e6dc3501101a1378b"
+    }
+  ]
 }
