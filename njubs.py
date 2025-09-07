@@ -23,7 +23,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # --------------------------
 # 配置区
 # --------------------------
-URL = "https://nubs.nju.edu.cn/main.htm"
+URL = "http://nubs.nju.edu.cn/main.htm"
 MODULE_IDS = {
     "latest_updates": "wp_news_w46",   # 最新动态
     "notices": "wp_news_w47",          # 通知公告
