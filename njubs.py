@@ -17,13 +17,16 @@ from email.header import Header
 from bs4 import BeautifulSoup
 from subprocess import run
 import urllib3
+from requests.adapters import HTTPAdapter
+from urllib3.util.ssl_ import create_urllib3_context
+import ssl
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --------------------------
 # 配置区
 # --------------------------
-URL = "http://nubs.nju.edu.cn/main.htm"
+URL = "https://nubs.nju.edu.cn/main.htm"
 MODULE_IDS = {
     "latest_updates": "wp_news_w46",   # 最新动态
     "notices": "wp_news_w47",          # 通知公告
@@ -57,14 +60,51 @@ for k, v in MODULE_SUBSCRIPTIONS.items():
     MODULE_SUBSCRIPTIONS[k] = [addr.strip() for addr in v.split(",") if addr.strip()]
 
 # --------------------------
+# 自定义 TLSAdapter 解决 SSL 问题
+# --------------------------
+class TLSAdapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        ctx = create_urllib3_context()
+        ctx.set_ciphers("DEFAULT@SECLEVEL=1")
+        ctx.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        kwargs["ssl_context"] = ctx
+        return super().init_poolmanager(*args, **kwargs)
+
+    def proxy_manager_for(self, *args, **kwargs):
+        ctx = create_urllib3_context()
+        ctx.set_ciphers("DEFAULT@SECLEVEL=1")
+        ctx.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        kwargs["ssl_context"] = ctx
+        return super().proxy_manager_for(*args, **kwargs)
+
+def get_page(url: str, timeout: int = 15) -> str:
+    headers = {"User-Agent": USER_AGENT}
+    s = requests.Session()
+    s.mount("http://", HTTPAdapter(max_retries=3))
+    s.mount("https://", TLSAdapter(max_retries=3))
+    try:
+        r = s.get(url, headers=headers, timeout=timeout, verify=False, allow_redirects=True)
+        r.raise_for_status()
+        r.encoding = r.apparent_encoding
+        return r.text
+    except requests.exceptions.RequestException as e:
+        print("抓取失败：", e)
+        return ""
+
+# --------------------------
 # 工具函数
 # --------------------------
 
 def fetch_module(module_id):
     """抓取单个模块的文章列表"""
-    resp = requests.get(URL, headers={"User-Agent": USER_AGENT}, timeout=30, verify=False)
-    resp.encoding = "utf-8"
-    soup = BeautifulSoup(resp.text, "html.parser")
+    html = get_page(URL)
+    if not html:
+        return []
+    soup = BeautifulSoup(html, "html.parser")
     module = soup.find("div", id=module_id)
     if not module:
         return []
@@ -74,7 +114,7 @@ def fetch_module(module_id):
         title = a.get_text(strip=True)
         href = a["href"]
         if not href.startswith("http"):
-            href = "http://nubs.nju.edu.cn/" + href.lstrip("/")
+            href = "https://nubs.nju.edu.cn/" + href.lstrip("/")
         if title:
             results.append({"title": title, "url": href})
     return results
