@@ -35,7 +35,7 @@ jobs:
     # 5. 设置远程使用 GITHUB_TOKEN
     - name: Set remote URL with token
       run: |
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Xipingo/NJUBSwatcher.git
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/XiPingo/NJUBSwatcher.git
 
     # 6. 运行 njubs.py
     - name: Run njubs.py
@@ -43,6 +43,11 @@ jobs:
         SMTP_USER: ${{ secrets.SMTP_USER }}
         SMTP_PASS: ${{ secrets.SMTP_PASS }}
         EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-        EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        EMAIL_TO_UPDATES: ${{ secrets.EMAIL_TO_UPDATES }}
+        EMAIL_TO_NOTICES: ${{ secrets.EMAIL_TO_NOTICES }}
+        EMAIL_TO_EVENTS: ${{ secrets.EMAIL_TO_EVENTS }}
+        EMAIL_TO_PROCUREMENT: ${{ secrets.EMAIL_TO_PROCUREMENT }}
+        EMAIL_TO_VIEWPOINTS: ${{ secrets.EMAIL_TO_VIEWPOINTS }}
+        EMAIL_TO_ANNOUNCEMENTS: ${{ secrets.EMAIL_TO_ANNOUNCEMENTS }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: python njubs.py
