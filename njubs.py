@@ -74,7 +74,7 @@ def fetch_module(module_id):
         title = a.get_text(strip=True)
         href = a["href"]
         if not href.startswith("http"):
-            href = "https://nubs.nju.edu.cn/" + href.lstrip("/")
+            href = "http://nubs.nju.edu.cn/" + href.lstrip("/")
         if title:
             results.append({"title": title, "url": href})
     return results
