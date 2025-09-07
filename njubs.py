@@ -16,7 +16,7 @@ from email.mime.text import MIMEText
 from email.header import Header
 from bs4 import BeautifulSoup
 from subprocess import run
-
+import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --------------------------
