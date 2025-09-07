@@ -169,16 +169,26 @@ def summarize_diffs(diffs):
 
 def send_email(module: str, subject: str, body: str):
     recipients = MODULE_SUBSCRIPTIONS.get(module, [])
-    if not (recipients and SMTP_USER and SMTP_PASS):
+    if not recipients:
+        print(f"[DEBUG] 模块 {module} 没有订阅邮箱，邮件未发送")
         return
-    msg = MIMEText(body, "plain", "utf-8")
-    msg["From"] = Header(EMAIL_FROM)
-    msg["To"] = Header(", ".join(recipients))
-    msg["Subject"] = Header(subject, "utf-8")
-    s = smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30)
-    s.login(SMTP_USER, SMTP_PASS)
-    s.sendmail(EMAIL_FROM, recipients, msg.as_string())
-    s.quit()
+    if not (SMTP_USER and SMTP_PASS and EMAIL_FROM):
+        print(f"[DEBUG] SMTP 参数缺失，邮件未发送")
+        return
+
+    print(f"[DEBUG] 准备发送邮件给 {recipients}")
+    try:
+        msg = MIMEText(body, "plain", "utf-8")
+        msg["From"] = Header(EMAIL_FROM)
+        msg["To"] = Header(", ".join(recipients))
+        msg["Subject"] = Header(subject, "utf-8")
+        s = smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30)
+        s.login(SMTP_USER, SMTP_PASS)
+        s.sendmail(EMAIL_FROM, recipients, msg.as_string())
+        s.quit()
+        print(f"[DEBUG] 邮件已发送给模块 {module}")
+    except Exception as e:
+        print(f"[DEBUG] 模块 {module} 邮件发送失败：", e)
 
 def git_commit_and_push(filepath):
     try:
