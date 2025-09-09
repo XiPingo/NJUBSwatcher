@@ -167,16 +167,27 @@ def summarize_diffs(diffs):
             lines.append(f"* {item['old']['title']} -> {item['new']['title']} {item['new']['url']}")
     return "\n".join(lines)
 
-def send_email(module: str, subject: str, body: str):
-    recipients = MODULE_SUBSCRIPTIONS.get(module, [])
-    msg = MIMEText(body, "plain", "utf-8")
-    msg["From"] = Header(EMAIL_FROM)
-    msg["To"] = Header(", ".join(recipients))
-    msg["Subject"] = Header(subject, "utf-8")
-    s = smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30)
-    s.login(SMTP_USER, SMTP_PASS)
-    s.sendmail(EMAIL_FROM, recipients, msg.as_string())
-    s.quit()
+def send_email_combined(subject: str, user_recipients: dict):
+    """按订阅合并，给每个收件人只发一封综合邮件"""
+    if not user_recipients:
+        return
+    try:
+        s = smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30)
+        s.login(SMTP_USER, SMTP_PASS)
+
+        for recipient, body_parts in user_recipients.items():
+            full_body = "\n\n".join(body_parts)
+            msg = MIMEText(full_body, "plain", "utf-8")
+            msg["From"] = Header(EMAIL_FROM)
+            msg["To"] = recipient
+            msg["Subject"] = Header(subject, "utf-8")
+            s.sendmail(EMAIL_FROM, [recipient], msg.as_string())
+            print(f"邮件已发送 → {recipient}")
+
+        s.quit()
+    except Exception as e:
+        print("综合邮件发送失败：", e)
+
 
 def git_commit_and_push(filepath):
     try:
@@ -202,22 +213,24 @@ def main():
     old_snapshot = load_snapshot(SNAPSHOT_FILE)
     diffs = diff_snapshots(old_snapshot, new_snapshot)
 
-    has_change = False
+    user_recipients = {}  # {邮箱: [模块更新文本]}
+
     for mod, info in diffs.items():
         added, removed, changed = info['added'], info['removed'], info['changed']
         if not (added or removed or changed):
             continue
-        has_change = True
-        ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        subject = f"[NUBS] {mod} 更新 ({ts})"
-        body = f"{subject}\n\n{summarize_diffs({mod: info})}"
-        print(body)
-        try:
-            send_email(mod, subject, body)
-        except Exception as e:
-            print(f"模块 {mod} 邮件发送失败：", e)
 
-    if has_change:
+        ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        mod_summary = summarize_diffs({mod: info})
+        body = f"### {mod} 更新 ({ts}) ###\n{mod_summary}"
+
+        # 找到订阅了这个模块的所有收件人
+        for recipient in MODULE_SUBSCRIPTIONS.get(mod, []):
+            user_recipients.setdefault(recipient, []).append(body)
+
+    if user_recipients:
+        subject = f"[NUBS] 官网更新 ({time.strftime('%Y-%m-%d %H:%M:%S')})"
+        send_email_combined(subject, user_recipients)
         save_snapshot(SNAPSHOT_FILE, new_snapshot)
         git_commit_and_push(SNAPSHOT_FILE)
     else:
@@ -227,6 +240,7 @@ def main():
             print("首次抓取并保存快照。")
         else:
             print("未检测到变化。")
+
 
 if __name__ == "__main__":
     main()
