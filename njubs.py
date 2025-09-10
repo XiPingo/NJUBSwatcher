@@ -183,6 +183,7 @@ def send_email_combined(subject: str, user_recipients: dict):
             msg["Subject"] = Header(subject, "utf-8")
             s.sendmail(EMAIL_FROM, [recipient], msg.as_string())
             print(f"邮件已发送 → {recipient}")
+            time.sleep(1)
 
         s.quit()
     except Exception as e:
