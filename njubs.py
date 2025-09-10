@@ -172,10 +172,10 @@ def send_email_combined(subject: str, user_recipients: dict):
     if not user_recipients:
         return
     try:
-        s = smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30)
-        s.login(SMTP_USER, SMTP_PASS)
 
         for recipient, body_parts in user_recipients.items():
+            s = smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=30)
+            s.login(SMTP_USER, SMTP_PASS)
             full_body = "\n\n".join(body_parts)
             msg = MIMEText(full_body, "plain", "utf-8")
             msg["From"] = Header(EMAIL_FROM)
@@ -183,9 +183,9 @@ def send_email_combined(subject: str, user_recipients: dict):
             msg["Subject"] = Header(subject, "utf-8")
             s.sendmail(EMAIL_FROM, [recipient], msg.as_string())
             print(f"邮件已发送 → {recipient}")
-            time.sleep(1)
+            s.quit()
+            time.sleep(2)
 
-        s.quit()
     except Exception as e:
         print("综合邮件发送失败：", e)
 
